@@ -1,27 +1,50 @@
 
-import string
-alphabet = string.lowercase + string.uppercase
+import argparse
 
 
-def toBin(x):
-    return bin(x)[2:]
+def genTruthTable(nBits):
+    """
+        Generator yielding truth table row
+    """
+    toBin = lambda x: bin(x)[2:]
+    decMax = 2**nBits
+    for i in xrange(decMax):
+        row = list(toBin(i).zfill(nBits))
+        yield row
 
 
-def addPad(x, varNum):
-    pad = (varNum - len(x))*'0'
-    return pad + x
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Generate a truth table')
+    parser.add_argument('-nb', '--nbits', type=int, help='Number of bits the truth table should contain')
+    parser.add_argument('-o', '--outputfile', type=str, help='Output to text file')
+    parser.add_argument('-s', '--separator', type=str, default='', help='Separator')
+    parser.add_argument('-v', '--verbose', action='store_true', default=False, help='Should output to console')
+    
+    args = parser.parse_args()
 
-varNum = int(raw_input("Enter Number of Variables: "))
-decMax = 2**varNum
+    nBits = args.nbits
+    outputFile = args.outputfile
+    verbose = args.verbose
+    separator = args.separator
 
-f = open('truthTable.txt', 'w')
+    if not nBits: # Interactive mode enabled
+        nBits = int(raw_input('Number of bits the truth table should contain: '))
+        outputFile = outputFile or raw_input('Output file [none]: ')
+        verbose = verbose or bool(raw_input('Should output to console [1/0]: '))
+        separator = separator or raw_input('Separator: ')
 
-f.write(' '.join(alphabet[0:varNum]))
-f.write("\n")
-f.write('=' * (varNum*2 - 1))
-f.write("\n")
-for i in xrange(decMax):
-    f.write(' '.join(addPad(toBin(i), varNum)))
-    f.write("\n")
+    tTable = genTruthTable(nBits)
 
-f.close()
+    hOutputFile = None
+    if outputFile:
+        hOutputFile = open(outputFile, 'w')
+
+    for row in tTable:
+        if verbose:
+            print separator.join(row)
+
+        if hOutputFile:
+            hOutputFile.write(separator.join(row) + '\n')
+
+    if hOutputFile:
+        hOutputFile.close()
